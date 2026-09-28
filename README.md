@@ -1,112 +1,221 @@
-# MiniKit Template
+# Neorypto / Necrypto
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-onchain --mini`](), configured with:
+> Digital inheritance for the crypto era — secure your assets, protect your legacy.
 
-- [MiniKit](https://docs.base.org/builderkits/minikit/overview)
-- [OnchainKit](https://www.base.org/builders/onchainkit)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Next.js](https://nextjs.org/docs)
+A Base / Farcaster mini-app for digital inheritance, built for the [Aleph Hackathon](https://aleph.im/) (August 2025) by [Kevin Anrique](https://github.com/kevan1).
 
-## Getting Started
+## Problem
 
-1. Install dependencies:
+When crypto holders pass away, their digital assets are often lost forever. Private keys die with their owners, leaving grieving families unable to access significant wealth. Traditional inheritance systems don't work for decentralized assets.
+
+## Solution
+
+Neorypto enables crypto holders to:
+- Assign trusted **guardians** who can verify their passing via multi-signature
+- Lock digital assets in a **secure vault** that releases only after verification
+- Configure **death verification methods** (guardian consensus, activity heartbeat, gov registry)
+- Distribute assets to beneficiaries automatically through immutable smart contracts
+
+## Status: Hackathon Prototype
+
+This is a **UI/UX prototype** built during a hackathon to demonstrate the concept. It showcases the full user flow but does not deploy real smart contracts or move real funds.
+
+### What's Implemented ✅
+
+- **Wallet Connection**: Base wallet integration via OnchainKit
+- **Role Selection**: Creator (will setup) vs Guardian (verification) flows
+- **Multi-Step Will Creation**:
+  - Verification setup (guardian/heartbeat/gov registry options)
+  - Guardian assignment (add/remove wallet addresses)
+  - Vault setup with asset deposits (reads real ETH balance, mocked deposits)
+  - Final review with deployment confirmation
+- **Guardian Interface**: Verification dashboard for assigned guardians
+- **Matrix Rain Landing**: Animated cyberpunk-style entry screen
+- **Responsive Design**: Mobile-first UI with dark theme
+
+### What's Mocked 🚧
+
+- **Smart Contract Deployment**: Will deployment is simulated (generates mock contract address, no real on-chain tx)
+- **Asset Deposits**: Vault deposits are client-side only (no real token transfers)
+- **Guardian Verification**: Death verification is a simulated blockchain call (3-second timeout)
+- **Beneficiary Management**: Simplified to "assets distributed to guardians"
+- **USDC Balance**: Hardcoded mock value
+- **Social Sharing**: Uses `composeCast` API but won't post without full Farcaster integration
+
+## Architecture Flow
+
+```mermaid
+graph TD
+    A[User Connects Wallet] -->|Base Wallet| B{Select Role}
+    B -->|Creator| C[Verification Setup]
+    B -->|Guardian| D[Guardian Dashboard]
+    
+    C --> E[Assign Guardians]
+    E --> F[Vault Setup]
+    F --> G[Final Review]
+    G -->|Sign Message| H[Deploy Will Contract]
+    H --> I[Share to Farcaster]
+    
+    D --> J[View Assigned Wills]
+    J -->|Verify Death| K[Multi-Sig Confirmation]
+    K --> L[Unlock Vault]
+    L --> M[Distribute to Beneficiaries]
+    
+    style H fill:#4CAF50
+    style K fill:#FF9800
+    style M fill:#2196F3
+```
+
+## Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Blockchain**: [Base](https://base.org/) (Coinbase L2)
+- **Wallet/Identity**: [OnchainKit](https://docs.base.org/builderkits/onchainkit) (Coinbase SDK)
+- **Mini-App SDK**: [MiniKit](https://docs.base.org/builderkits/minikit) + [Farcaster Frame SDK](https://docs.farcaster.xyz/reference/frames/spec)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/)
+- **State Management**: React hooks + Wagmi
+- **Notifications**: [Upstash Redis](https://upstash.com/) (webhook storage, optional)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **TypeScript**: Strict type checking
+
+## Local Setup
+
+### Prerequisites
+
+- Node.js 18+
+- npm, yarn, pnpm, or bun
+- A Coinbase Wallet (for testing)
+
+### Installation
+
 ```bash
+# Clone the repository
+git clone https://github.com/kevan1/Necrypto-AlephHackathon.git
+cd Necrypto-AlephHackathon
+
+# Install dependencies
 npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
+
+# Copy environment template
+cp .env.example .env.local
 ```
 
-2. Verify environment variables, these will be set up by the `npx create-onchain --mini` command:
+### Environment Variables
 
-You can regenerate the FARCASTER Account Association environment variables by running `npx create-onchain --manifest` in your project directory.
-
-The environment variables enable the following features:
-
-- Frame metadata - Sets up the Frame Embed that will be shown when you cast your frame
-- Account association - Allows users to add your frame to their account, enables notifications
-- Redis API keys - Enable Webhooks and background notifications for your application by storing users notification details
+See `.env.example` for all required variables. Key ones:
 
 ```bash
-# Shared/OnchainKit variables
-NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME=
-NEXT_PUBLIC_URL=
-NEXT_PUBLIC_ICON_URL=
-NEXT_PUBLIC_ONCHAINKIT_API_KEY=
+# OnchainKit (required for wallet connection)
+NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_api_key
 
-# Frame metadata
-FARCASTER_HEADER=
-FARCASTER_PAYLOAD=
-FARCASTER_SIGNATURE=
-NEXT_PUBLIC_APP_ICON=
-NEXT_PUBLIC_APP_SUBTITLE=
-NEXT_PUBLIC_APP_DESCRIPTION=
-NEXT_PUBLIC_APP_SPLASH_IMAGE=
-NEXT_PUBLIC_SPLASH_BACKGROUND_COLOR=
-NEXT_PUBLIC_APP_PRIMARY_CATEGORY=
-NEXT_PUBLIC_APP_HERO_IMAGE=
-NEXT_PUBLIC_APP_TAGLINE=
-NEXT_PUBLIC_APP_OG_TITLE=
-NEXT_PUBLIC_APP_OG_DESCRIPTION=
-NEXT_PUBLIC_APP_OG_IMAGE=
+# App Metadata (Frame configuration)
+NEXT_PUBLIC_URL=http://localhost:3000
+NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME="Neorypto"
 
-# Redis config
-REDIS_URL=
-REDIS_TOKEN=
+# Redis (optional, for notifications)
+REDIS_URL=your_redis_url
+REDIS_TOKEN=your_redis_token
 ```
 
-3. Start the development server:
+**Note**: The app will run without Redis (notifications disabled). OnchainKit API key is recommended but not strictly required for local development.
+
+### Run Development Server
+
 ```bash
 npm run dev
 ```
 
-## Template Features
+Open [http://localhost:3000](http://localhost:3000) and connect your Base wallet.
 
-### Frame Configuration
-- `.well-known/farcaster.json` endpoint configured for Frame metadata and account association
-- Frame metadata automatically added to page headers in `layout.tsx`
+### Build for Production
 
-### Background Notifications
-- Redis-backed notification system using Upstash
-- Ready-to-use notification endpoints in `api/notify` and `api/webhook`
-- Notification client utilities in `lib/notification-client.ts`
+```bash
+npm run build
+npm start
+```
 
-### Theming
-- Custom theme defined in `theme.css` with OnchainKit variables
-- Pixel font integration with Pixelify Sans
-- Dark/light mode support through OnchainKit
+## Project Structure
 
-### MiniKit Provider
-The app is wrapped with `MiniKitProvider` in `providers.tsx`, configured with:
-- OnchainKit integration
-- Access to Frames context
-- Sets up Wagmi Connectors
-- Sets up Frame SDK listeners
-- Applies Safe Area Insets
+```
+necrypto/
+├── app/
+│   ├── components/
+│   │   ├── RoleSelection.tsx       # Choose Creator vs Guardian
+│   │   ├── VerificationSetup.tsx   # Step 1: Configure verification
+│   │   ├── AssignGuardians.tsx     # Step 2: Add guardian wallets
+│   │   ├── VaultSetup.tsx          # Step 3: Deposit assets
+│   │   ├── FinalReview.tsx         # Step 4: Review & deploy
+│   │   ├── GuardianInterface.tsx   # Guardian verification UI
+│   │   └── DemoComponents.tsx      # Shared UI primitives
+│   ├── api/
+│   │   ├── notify/                 # Farcaster notifications
+│   │   └── webhook/                # Webhook handler
+│   ├── page.tsx                    # Main app entry
+│   ├── layout.tsx                  # Root layout + Frame metadata
+│   └── providers.tsx               # MiniKit + Wagmi setup
+├── components/
+│   ├── matrix-rain.tsx             # Animated landing screen
+│   └── ui/                         # Radix UI components
+├── lib/
+│   ├── notification.ts             # Upstash Redis client
+│   └── notification-client.ts      # Frame notification helpers
+└── public/
+    └── ascii-art-text.png          # Logo
+```
 
-## Customization
+## Next Steps
 
-To get started building your own frame, follow these steps:
+To turn this into a production-ready app:
 
-1. Remove the DemoComponents:
-   - Delete `components/DemoComponents.tsx`
-   - Remove demo-related imports from `page.tsx`
+### Core Smart Contracts
+- [ ] Implement will creation contract (ERC-4337 account abstraction)
+- [ ] Multi-sig guardian verification logic
+- [ ] Time-locked asset release mechanism
+- [ ] Beneficiary distribution rules engine
 
-2. Start building your Frame:
-   - Modify `page.tsx` to create your Frame UI
-   - Update theme variables in `theme.css`
-   - Adjust MiniKit configuration in `providers.tsx`
+### Asset Management
+- [ ] Real ERC-20 token deposits (USDC, DAI, etc.)
+- [ ] NFT inheritance support (ERC-721/ERC-1155)
+- [ ] Multi-chain vault (Base, Ethereum mainnet, Arbitrum)
+- [ ] Gas fee estimation and prepayment
 
-3. Add your frame to your account:
-   - Cast your frame to see it in action
-   - Share your frame with others to start building your community
+### Death Verification
+- [ ] Guardian consensus threshold (e.g., 2-of-3 signatures)
+- [ ] Activity heartbeat contract (check-in or auto-trigger)
+- [ ] Government death registry oracle integration
+- [ ] Challenge period for false claims
 
-## Learn More
+### Security & Legal
+- [ ] Smart contract audit (OpenZeppelin, Trail of Bits)
+- [ ] Legal framework compliance (state-specific inheritance laws)
+- [ ] Emergency recovery mechanism
+- [ ] Encrypted backup of guardian contacts
 
-- [MiniKit Documentation](https://docs.base.org/builderkits/minikit/overview)
-- [OnchainKit Documentation](https://docs.base.org/builderkits/onchainkit/getting-started)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+### UX Improvements
+- [ ] Beneficiary management (addresses + percentages)
+- [ ] Email/SMS notifications to guardians
+- [ ] Will update mechanism (before death)
+- [ ] Testnet deployment for safe testing
+
+## Demo Video
+
+[Coming soon - add screen recording link]
+
+## Hackathon Context
+
+Built for **Aleph Hackathon** (August 2025) in the Digital Inheritance / Web3 Legacy track. The project explores how blockchain can solve the "dead man's switch" problem for crypto holders while maintaining security and preventing premature unlocking.
+
+## License
+
+MIT License - See [LICENSE](LICENSE) for details.
+
+## Acknowledgments
+
+- [Base](https://base.org/) for the MiniKit template and OnchainKit
+- [Farcaster](https://www.farcaster.xyz/) for the Frame SDK and social layer
+- [Coinbase](https://www.coinbase.com/) for wallet infrastructure
+- [Aleph.im](https://aleph.im/) for hosting the hackathon
+
+---
+
+**Built with ❤️ on Base** | [GitHub](https://github.com/kevan1/Necrypto-AlephHackathon)
